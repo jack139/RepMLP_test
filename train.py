@@ -15,6 +15,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 from tqdm import tqdm
+#from tqdm.notebook import tqdm
 
 from repmlp.repmlp_resnet import *
 from utils import accuracy, ProgressMeter, AverageMeter, load_checkpoint
@@ -147,7 +148,7 @@ if not torch.cuda.is_available():
 else:
     model = model.cuda()
     use_gpu = True
-        
+
 # Training
 
 
@@ -169,7 +170,7 @@ if os.path.exists(CHECKPOINT):
     print(f"Loaded {CHECKPOINT}: epochs= {total_epochs}, loss= {last_loss:.6f}, num_classes= {len(last_label)}")
 else:
     # 载入 pre-train checkpoint
-    if os.path.isfile(PRETRAINED):
+    if os.path.exists(PRETRAINED):
         print("=> loading pre-trained checkpoint '{}'".format(PRETRAINED))
         load_checkpoint(model, PRETRAINED)
 
