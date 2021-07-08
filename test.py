@@ -12,7 +12,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from utils import accuracy, ProgressMeter, AverageMeter, load_checkpoint
 import PIL
-from repmlp_resnet import *
+from repmlp.repmlp_resnet import *
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Test')
 parser.add_argument('data', metavar='DIR', help='path to dataset')

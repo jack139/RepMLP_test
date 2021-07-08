@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from repmlp_blocks import ConvBNReLU, ConvBN, RepMLPLightBlock, RepMLPBottleneckBlock
+from .repmlp_blocks import ConvBNReLU, ConvBN, RepMLPLightBlock, RepMLPBottleneckBlock
 
 #   RepMLP: Re-parameterizing Convolutions into Fully-connected Layers for Image Recognition
 #   Paper:  https://arxiv.org/abs/2105.01883

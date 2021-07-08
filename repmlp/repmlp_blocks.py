@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from repmlp import RepMLP, fuse_bn
+from .repmlp import RepMLP, fuse_bn
 
 
 #   RepMLP: Re-parameterizing Convolutions into Fully-connected Layers for Image Recognition

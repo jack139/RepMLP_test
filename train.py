@@ -16,10 +16,12 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 from tqdm import tqdm
 
-from repmlp_resnet import *
+from repmlp.repmlp_resnet import *
+from utils import accuracy, ProgressMeter, AverageMeter, load_checkpoint
 
 # checkpoint
-CHECKPOINT = ''
+PRETRAINED = '../face_model/RepMLP/RepMLP-Res50-light-224_train.pth'
+CHECKPOINT = 'data/checkpoint.pt'
 total_epochs = 0
 
 # 训练图片路径
@@ -139,6 +141,13 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = sum([np.prod(p.size()) for p in parameters]) / 1_000_000
 print('Trainable Parameters: %.3fM' % parameters)
 
+if not torch.cuda.is_available():
+    print('using CPU, this will be slow')
+    use_gpu = False
+else:
+    model = model.cuda()
+    use_gpu = True
+        
 # Training
 
 
@@ -150,8 +159,6 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 
 
-
-# 载入 checkpoint
 if os.path.exists(CHECKPOINT):
     checkpoint = torch.load(CHECKPOINT)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -160,6 +167,11 @@ if os.path.exists(CHECKPOINT):
     last_loss = checkpoint['loss']
     last_label = checkpoint['label_dict']
     print(f"Loaded {CHECKPOINT}: epochs= {total_epochs}, loss= {last_loss:.6f}, num_classes= {len(last_label)}")
+else:
+    # 载入 pre-train checkpoint
+    if os.path.isfile(PRETRAINED):
+        print("=> loading pre-trained checkpoint '{}'".format(PRETRAINED))
+        load_checkpoint(model, PRETRAINED)
 
 
 for epoch in range(epochs):
