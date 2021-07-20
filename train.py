@@ -21,7 +21,7 @@ from repmlp.repmlp_resnet import *
 from utils import accuracy, ProgressMeter, AverageMeter, load_checkpoint
 
 # checkpoint
-PRETRAINED = '../face_model/RepMLP/RepMLP-Res50-light-224_train.pth'
+PRETRAINED = '' #'../face_model/RepMLP/RepMLP-Res50-light-224_train.pth'
 CHECKPOINT = 'data/checkpoint.pt'
 total_epochs = 0
 
@@ -30,11 +30,12 @@ train_dir = 'data/train'
 
 
 # Training settings
-batch_size = 24
+batch_size = 32
 epochs = 2
 lr = 3e-5
 gamma = 0.7
 seed = 42
+img_size = 96 # 224
 
 print(f"batch_size={batch_size}, epochs={epochs}, lr={lr}")
 
@@ -81,8 +82,8 @@ print(f"Validation Set: {len(valid_list)}")
 # Image Augumentation
 train_transforms = transforms.Compose(
     [
-        transforms.Resize((224, 224)),
-        transforms.RandomResizedCrop(224),
+        transforms.Resize((img_size, img_size)),
+        transforms.RandomResizedCrop(img_size),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
     ]
@@ -90,8 +91,8 @@ train_transforms = transforms.Compose(
 
 val_transforms = transforms.Compose(
     [
-        transforms.Resize((224, 224)),
-        transforms.RandomResizedCrop(224),
+        transforms.Resize((img_size, img_size)),
+        transforms.RandomResizedCrop(img_size),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
     ]
@@ -100,8 +101,8 @@ val_transforms = transforms.Compose(
 
 test_transforms = transforms.Compose(
     [
-        transforms.Resize((224, 224)),
-        transforms.RandomResizedCrop(224),
+        transforms.Resize((img_size, img_size)),
+        transforms.RandomResizedCrop(img_size),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
     ]
@@ -136,7 +137,9 @@ valid_loader = DataLoader(dataset = valid_data, batch_size=batch_size, shuffle=T
 
 
 # model
-model = create_RepMLPRes50_Light_224(deploy=False)
+#model = create_RepMLPRes50_Light_224(deploy=False)
+model = RepMLPResNet(num_blocks=[3,2,2,2], num_classes=len(label_list), block_type='bottleneck', img_H=96, img_W=96,
+            h=6, w=6, reparam_conv_k=(1,3,5), fc1_fc2_reduction=1, fc3_groups=4, deploy=False, bottleneck_r=(2,4))
 
 parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = sum([np.prod(p.size()) for p in parameters]) / 1_000_000
@@ -209,8 +212,11 @@ for epoch in range(epochs):
             epoch_val_loss += val_loss / len(valid_loader)
 
     print(
-        f"Epoch : {epoch+1} - loss : {epoch_loss:.4f} - acc: {epoch_accuracy:.4f} - val_loss : {epoch_val_loss:.4f} - val_acc: {epoch_val_accuracy:.4f}\n"
+        f"Epoch : {epoch+1} - loss : {epoch_loss:.4f} - acc: {epoch_accuracy:.4f} - val_loss : {epoch_val_loss:.4f} - val_acc: {epoch_val_accuracy:.4f} - lr: {scheduler.get_last_lr()[0]}\n"
     )
+
+    #scheduler.step()
+
 
 # 保存
 torch.save({
