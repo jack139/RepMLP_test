@@ -166,7 +166,7 @@ scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 if os.path.exists(CHECKPOINT):
     checkpoint = torch.load(CHECKPOINT)
     model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     total_epochs = checkpoint['epoch']
     last_loss = checkpoint['loss']
     last_label = checkpoint['label_dict']
@@ -222,7 +222,7 @@ for epoch in range(epochs):
 torch.save({
             'epoch'                : total_epochs+epochs,
             'model_state_dict'     : model.state_dict(),
-            'optimizer_state_dict' : optimizer.state_dict(),
+            #'optimizer_state_dict' : optimizer.state_dict(),
             'loss'                 : epoch_loss,
             'label_dict'           : label_dict,
             }, CHECKPOINT)
