@@ -19,6 +19,7 @@ from tqdm import tqdm
 
 from repmlp.repmlp_resnet import *
 from utils import accuracy, ProgressMeter, AverageMeter, load_checkpoint
+from AdMSLoss import AdMSoftmaxLoss
 
 # checkpoint
 PRETRAINED = '' #'../face_model/RepMLP/RepMLP-Res50-light-224_train.pth'
@@ -83,18 +84,20 @@ print(f"Validation Set: {len(valid_list)}")
 train_transforms = transforms.Compose(
     [
         transforms.Resize((img_size, img_size)),
-        transforms.RandomResizedCrop(img_size),
-        transforms.RandomHorizontalFlip(),
+        #transforms.RandomResizedCrop(img_size),
+        #transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]),
     ]
 )
 
 val_transforms = transforms.Compose(
     [
         transforms.Resize((img_size, img_size)),
-        transforms.RandomResizedCrop(img_size),
-        transforms.RandomHorizontalFlip(),
+        #transforms.RandomResizedCrop(img_size),
+        #transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]),
     ]
 )
 
@@ -102,9 +105,10 @@ val_transforms = transforms.Compose(
 test_transforms = transforms.Compose(
     [
         transforms.Resize((img_size, img_size)),
-        transforms.RandomResizedCrop(img_size),
-        transforms.RandomHorizontalFlip(),
+        #transforms.RandomResizedCrop(img_size),
+        #transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]),
     ]
 )
 
@@ -138,8 +142,10 @@ valid_loader = DataLoader(dataset = valid_data, batch_size=batch_size, shuffle=T
 
 # model
 #model = create_RepMLPRes50_Light_224(deploy=False)
-model = RepMLPResNet(num_blocks=[3,2,2,2], num_classes=len(label_list), block_type='bottleneck', img_H=96, img_W=96,
-            h=6, w=6, reparam_conv_k=(1,3,5), fc1_fc2_reduction=1, fc3_groups=4, deploy=False, bottleneck_r=(2,4))
+model = RepMLPResNet(num_blocks=[3,4,6,3], num_classes=len(label_list), 
+            block_type='bottleneck', img_H=img_size, img_W=img_size,
+            h=6, w=6, reparam_conv_k=(1,3,5), fc1_fc2_reduction=1, fc3_groups=4, 
+            deploy=False, bottleneck_r=(2,4))
 
 parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = sum([np.prod(p.size()) for p in parameters]) / 1_000_000
@@ -157,6 +163,9 @@ else:
 
 # loss function
 criterion = nn.CrossEntropyLoss()
+#in_features = len(label_list)
+#out_features = len(label_list) # Number of classes
+#criterion = AdMSoftmaxLoss(in_features, out_features, s=30.0, m=0.4).to(device) # Default values recommended by [1]
 # optimizer
 optimizer = optim.Adam(model.parameters(), lr=lr)
 # scheduler
@@ -222,7 +231,7 @@ for epoch in range(epochs):
 torch.save({
             'epoch'                : total_epochs+epochs,
             'model_state_dict'     : model.state_dict(),
-            #'optimizer_state_dict' : optimizer.state_dict(),
+            'optimizer_state_dict' : optimizer.state_dict(),
             'loss'                 : epoch_loss,
             'label_dict'           : label_dict,
             }, CHECKPOINT)
