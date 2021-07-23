@@ -34,9 +34,9 @@ val_dir = 'data/val'
 
 
 # Training settings
-batch_size = 32
-epochs = 2
-lr = 3e-5
+batch_size = 128
+epochs = 20
+lr = 0.001
 gamma = 0.7
 seed = 42
 img_size = 96 # 224
