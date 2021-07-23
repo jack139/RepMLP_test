@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from PIL import Image
-from sklearn.model_selection import train_test_split
+#from sklearn.model_selection import train_test_split
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
@@ -26,8 +26,11 @@ PRETRAINED = '' #'../face_model/RepMLP/RepMLP-Res50-light-224_train.pth'
 CHECKPOINT = 'data/checkpoint.pt'
 total_epochs = 0
 
+
+
 # 训练图片路径
 train_dir = 'data/train'
+val_dir = 'data/val'
 
 
 # Training settings
@@ -67,15 +70,16 @@ print(f"num_classes: {len(label_list)}")
 
 # load data
 train_list = glob.glob(os.path.join(train_dir+'/*','*.jpg'))
-print(f"Train Data: {len(train_list)}")
+valid_list = glob.glob(os.path.join(val_dir+'/*','*.jpg'))
 
 labels = [path.split('/')[-2] for path in train_list]
 
 # split
-train_list, valid_list = train_test_split(train_list, 
-    test_size=0.2, 
-    stratify=labels, # 对有些数据集需要注释掉，标签下只有1个数据的情况
-    random_state=seed)
+#train_list, valid_list = train_test_split(train_list, 
+#    test_size=0.2, 
+#    stratify=labels, # 对有些数据集需要注释掉，标签下只有1个数据的情况
+#    random_state=seed)
+
 print(f"Train Set: {len(train_list)}")
 print(f"Validation Set: {len(valid_list)}")
 
@@ -90,17 +94,6 @@ train_transforms = transforms.Compose(
         transforms.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]),
     ]
 )
-
-val_transforms = transforms.Compose(
-    [
-        transforms.Resize((img_size, img_size)),
-        #transforms.RandomResizedCrop(img_size),
-        #transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]),
-    ]
-)
-
 
 test_transforms = transforms.Compose(
     [
