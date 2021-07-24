@@ -236,7 +236,7 @@ for epoch in range(epochs):
 
         # 保存
         torch.save({
-                    'epoch'                : total_epochs+epochs,
+                    'epoch'                : total_epochs+epoch+1,
                     'model_state_dict'     : model.state_dict(),
                     'optimizer_state_dict' : optimizer.state_dict(),
                     'loss'                 : epoch_loss,
