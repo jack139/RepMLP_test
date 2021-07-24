@@ -21,9 +21,11 @@ from repmlp.repmlp_resnet import *
 from utils import accuracy, ProgressMeter, AverageMeter, load_checkpoint
 from AdMSLoss import AdMSoftmaxLoss
 
+torch.cuda.empty_cache()
+
 # checkpoint
 PRETRAINED = '' #'../face_model/RepMLP/RepMLP-Res50-light-224_train.pth'
-CHECKPOINT = 'data/checkpoint.ckpt'
+CHECKPOINT = 'data/checkpoint.ckpt.b224_e5_0.9201'
 total_epochs = 0
 
 
@@ -36,9 +38,9 @@ val_dir = 'data/glint-20/val'
 
 
 # Training settings
-batch_size = 224
+batch_size = 160 # 8G卡，第一次训练可以224，ckpt继续训练只能160
 epochs = 5
-lr = 3e-4
+lr = 3e-5
 gamma = 0.7
 seed = 42
 img_size = 96 # 224
@@ -230,6 +232,8 @@ for epoch in range(epochs):
     if epoch_val_accuracy > best_acc:
         best_acc = epoch_val_accuracy
 
+        ckpt_save_path = "data/checkpoint.ckpt.b{}_e{}_{:.4f}".format(batch_size, epoch+1, epoch_val_accuracy)
+
         # 保存
         torch.save({
                     'epoch'                : total_epochs+epochs,
@@ -237,7 +241,7 @@ for epoch in range(epochs):
                     'optimizer_state_dict' : optimizer.state_dict(),
                     'loss'                 : epoch_loss,
                     'label_dict'           : label_dict,
-                    }, CHECKPOINT)
+                    }, ckpt_save_path)
 
 
 '''
