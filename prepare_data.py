@@ -1,7 +1,8 @@
 import os, shutil
 
 # 准备数据集
-SOURCE = '../datasets/CASIA-maxpy-clean'
+#SOURCE = '../datasets/CASIA-maxpy-clean'
+SOURCE = '../datasets/glint_asia'
 TRAIN = 'data/train'
 VALID = 'data/val'
 
@@ -16,7 +17,7 @@ print('total num_classes= ', len(dirs))
 for d in dirs:
     src_path = os.path.join(SOURCE, d)
     img_list = os.listdir(src_path)
-    if len(img_list)<5:
+    if len(img_list)<20:
         continue
 
     train_path = os.path.join(TRAIN, d)

@@ -23,20 +23,22 @@ from AdMSLoss import AdMSoftmaxLoss
 
 # checkpoint
 PRETRAINED = '' #'../face_model/RepMLP/RepMLP-Res50-light-224_train.pth'
-CHECKPOINT = 'data/checkpoint.pt'
+CHECKPOINT = 'data/checkpoint.ckpt'
 total_epochs = 0
 
 
 
 # 训练图片路径
-train_dir = 'data/train'
-val_dir = 'data/val'
+train_dir = 'data/glint-20/train'
+val_dir = 'data/glint-20/val'
+#train_dir = 'data/CASIA-5/train'
+#val_dir = 'data/CASIA-5/val'
 
 
 # Training settings
-batch_size = 128
-epochs = 20
-lr = 0.001
+batch_size = 224
+epochs = 5
+lr = 3e-4
 gamma = 0.7
 seed = 42
 img_size = 96 # 224
@@ -134,11 +136,14 @@ valid_loader = DataLoader(dataset = valid_data, batch_size=batch_size, shuffle=T
 
 
 # model
-#model = create_RepMLPRes50_Light_224(deploy=False)
 model = RepMLPResNet(num_blocks=[3,4,6,3], num_classes=len(label_list), 
-            block_type='bottleneck', img_H=img_size, img_W=img_size,
-            h=6, w=6, reparam_conv_k=(1,3,5), fc1_fc2_reduction=1, fc3_groups=4, 
-            deploy=False, bottleneck_r=(2,4))
+            block_type='light', img_H=img_size, img_W=img_size,
+            h=6, w=6, reparam_conv_k=(1,3,5), fc1_fc2_reduction=1, fc3_groups=4,
+            deploy=False)
+#model = RepMLPResNet(num_blocks=[3,4,6,3], num_classes=len(label_list), 
+#            block_type='bottleneck', img_H=img_size, img_W=img_size,
+#            h=6, w=6, reparam_conv_k=(1,3,5), fc1_fc2_reduction=1, fc3_groups=4, 
+#            deploy=False, bottleneck_r=(2,4))
 
 parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = sum([np.prod(p.size()) for p in parameters]) / 1_000_000
@@ -168,7 +173,7 @@ scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 if os.path.exists(CHECKPOINT):
     checkpoint = torch.load(CHECKPOINT)
     model.load_state_dict(checkpoint['model_state_dict'])
-    #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     total_epochs = checkpoint['epoch']
     last_loss = checkpoint['loss']
     last_label = checkpoint['label_dict']
@@ -179,10 +184,13 @@ else:
         print("=> loading pre-trained checkpoint '{}'".format(PRETRAINED))
         load_checkpoint(model, PRETRAINED)
 
+best_acc = 0
 
 for epoch in range(epochs):
     epoch_loss = 0
     epoch_accuracy = 0
+
+    print(f"lr: {scheduler.get_last_lr()[0]}")
 
     for data, label in tqdm(train_loader):
         data = data.to(device)
@@ -214,20 +222,22 @@ for epoch in range(epochs):
             epoch_val_loss += val_loss / len(valid_loader)
 
     print(
-        f"Epoch : {epoch+1} - loss : {epoch_loss:.4f} - acc: {epoch_accuracy:.4f} - val_loss : {epoch_val_loss:.4f} - val_acc: {epoch_val_accuracy:.4f} - lr: {scheduler.get_last_lr()[0]}\n"
+        f"Epoch : {epoch+1} - loss : {epoch_loss:.4f} - acc: {epoch_accuracy:.4f} - val_loss : {epoch_val_loss:.4f} - val_acc: {epoch_val_accuracy:.4f}\n"
     )
 
     #scheduler.step()
 
+    if epoch_val_accuracy > best_acc:
+        best_acc = epoch_val_accuracy
 
-# 保存
-torch.save({
-            'epoch'                : total_epochs+epochs,
-            'model_state_dict'     : model.state_dict(),
-            'optimizer_state_dict' : optimizer.state_dict(),
-            'loss'                 : epoch_loss,
-            'label_dict'           : label_dict,
-            }, CHECKPOINT)
+        # 保存
+        torch.save({
+                    'epoch'                : total_epochs+epochs,
+                    'model_state_dict'     : model.state_dict(),
+                    'optimizer_state_dict' : optimizer.state_dict(),
+                    'loss'                 : epoch_loss,
+                    'label_dict'           : label_dict,
+                    }, CHECKPOINT)
 
 
 '''

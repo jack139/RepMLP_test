@@ -14,3 +14,8 @@ python3 convert.py ../face_model/RepMLP/RepMLP-Res50-light-224_train.pth RepMLP-
 ```
 python3 test.py data/ deploy data/RepMLP-Res50-light-224_deploy.pth -a RepMLP-Res50-light-224
 ```
+
+训练测试
+```
+python3 train.py
+```
