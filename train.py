@@ -25,7 +25,7 @@ torch.cuda.empty_cache()
 
 # checkpoint
 PRETRAINED = '' #'../face_model/RepMLP/RepMLP-Res50-light-224_train.pth'
-CHECKPOINT = 'data/checkpoint.ckpt.b224_e5_0.9201'
+CHECKPOINT = 'data/checkpoint.ckpt.b160_e10_0.9366'
 total_epochs = 0
 
 
@@ -172,6 +172,8 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 
 
+total_epochs = 0
+
 if os.path.exists(CHECKPOINT):
     checkpoint = torch.load(CHECKPOINT)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -224,7 +226,7 @@ for epoch in range(epochs):
             epoch_val_loss += val_loss / len(valid_loader)
 
     print(
-        f"Epoch : {epoch+1} - loss : {epoch_loss:.4f} - acc: {epoch_accuracy:.4f} - val_loss : {epoch_val_loss:.4f} - val_acc: {epoch_val_accuracy:.4f}\n"
+        f"Epoch : {total_epochs+epoch+1} - loss : {epoch_loss:.4f} - acc: {epoch_accuracy:.4f} - val_loss : {epoch_val_loss:.4f} - val_acc: {epoch_val_accuracy:.4f}\n"
     )
 
     #scheduler.step()
@@ -232,7 +234,7 @@ for epoch in range(epochs):
     if epoch_val_accuracy > best_acc:
         best_acc = epoch_val_accuracy
 
-        ckpt_save_path = "data/checkpoint.ckpt.b{}_e{}_{:.4f}".format(batch_size, epoch+1, epoch_val_accuracy)
+        ckpt_save_path = "data/checkpoint.ckpt.b{}_e{}_{:.4f}".format(batch_size, total_epochs+epoch+1, epoch_val_accuracy)
 
         # 保存
         torch.save({
